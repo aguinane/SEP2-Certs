@@ -1,0 +1,48 @@
+[build-system]
+requires = ["flit_core >=3.2,<4"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = "sep2cert"
+authors = [{ name = "Alex Guinman", email = "alex@guinman.id.au" }]
+readme = "README.md"
+license = { file = "LICENSE" }
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.12",
+    "Operating System :: OS Independent",
+]
+requires-python = ">=3.12"
+dynamic = ["version", "description"]
+dependencies = [
+    "asn1==2.8.0",
+    "cryptography>=44.0.1",
+    "python-dateutil>=2.8.2",
+    "typer>=0.15.1",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=2.7.3", "pytest-cov>=6.0.0"]
+
+[project.scripts]
+sep2cert = "sep2cert.cli:app"
+
+[project.urls]
+Source = "https://github.com/aguinane/SEP2-Certs"
+
+[tool.pytest.ini_options]
+addopts = "-ra --failed-first --showlocals --durations=3 --cov=sep2cert"
+
+[tool.coverage.run]
+omit = ["*/version.py", '*/__main__.py']
+
+[tool.coverage.report]
+show_missing = true
+skip_empty = true
+fail_under = 75
+
+[tool.ruff.lint]
+select = ["A", "B", "E", "F", "I", "N", "PERF", "RUF", "SIM", "UP"]
