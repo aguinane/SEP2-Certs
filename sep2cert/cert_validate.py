@@ -12,6 +12,9 @@ INDEF_EXPIRY = datetime(9999, 12, 31, 23, 59, 59, 0, UTC)  # As per standard
 
 
 def load_certificate(cert_path: Path) -> Certificate:
+    """Load X.509 DER Certificate in PEM format and return Certificate object"""
+    if not isinstance(cert_path, Path):
+        cert_path = Path(cert_path)
     if not cert_path.exists():
         raise ValueError(f"Cert not found at {cert_path}")
     with open(cert_path, "rb") as pem_file:
@@ -129,7 +132,13 @@ def validate_certificate(cert_path: Path) -> bool:
     # Verify the Other Name OID in the SAN
     sep2_hw_mod_name = False
     oid_hw_mod_name = "1.3.6.1.5.5.7.8.4"
-    san_oids = get_cert_san_other_names_policy_oids(cert_path)
+    try:
+        san_oids = get_cert_san_other_names_policy_oids(cert_path)
+    except x509.ExtensionNotFound:
+        msg = "Certificate has no Subject Alternative Name extension."
+        log.warning(msg)
+        valid = False
+        san_oids = []
     for oid in san_oids:
         if oid == oid_hw_mod_name:
             sep2_hw_mod_name = True

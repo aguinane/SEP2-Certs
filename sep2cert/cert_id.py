@@ -69,7 +69,8 @@ def is_pem_certificate(cert_path: Path) -> bool:
 
 def get_der_certificate_lfdi(cert_path: Path, group: bool = True):
     """Load X.509 DER Certificate and return LFDI"""
-
+    if not isinstance(cert_path, Path):
+        cert_path = Path(cert_path)
     if not cert_path.exists():
         raise ValueError(f"Cert not found at {cert_path}")
 
@@ -79,7 +80,8 @@ def get_der_certificate_lfdi(cert_path: Path, group: bool = True):
 
 def get_pem_certificate_lfdi(cert_path: Path, group: bool = True):
     """Load X.509 DER Certificate in PEM format and return LFDI"""
-
+    if not isinstance(cert_path, Path):
+        cert_path = Path(cert_path)
     if not cert_path.exists():
         raise ValueError(f"Cert not found at {cert_path}")
 

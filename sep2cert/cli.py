@@ -9,7 +9,7 @@ from .cert_create import (
     generate_mica,
     generate_serca,
 )
-from .cert_id import get_certificate_lfdi
+from .cert_id import get_certificate_lfdi, get_sfdi
 from .cert_validate import validate_certificate
 from .version import __version__
 
@@ -32,11 +32,10 @@ def callback(
 
     Functions for creating and validating IEEE 2030.5 (SEP2) certificates.
     """
-    pass
 
 
 @app.command()
-def cert_lfdi(filepath: Path, verbose: bool = False) -> None:
+def lfdi(filepath: Path, verbose: bool = False) -> None:
     log_level = "DEBUG" if verbose else "INFO"
     logging.basicConfig(level=log_level, format=LOG_FORMAT)
 
@@ -46,6 +45,9 @@ def cert_lfdi(filepath: Path, verbose: bool = False) -> None:
 
     lfdi = get_certificate_lfdi(filepath)
     typer.echo(f"The LFDI is: {lfdi}")
+
+    sfdi = get_sfdi(filepath)
+    typer.echo(f"The SFDI is: {sfdi}")
 
     validate_certificate(filepath)
 
