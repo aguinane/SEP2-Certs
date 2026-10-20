@@ -262,9 +262,6 @@ def generate_mica(
     ca_cert_path: Path,
     ca_key_path: Path,
     cert_file: Path | None = None,
-    org_name: str = "Example Org Name",
-    country_name: str = "AU",
-    common_name: str = "IEEE 2030.5 MICA",
     policy_oids: list[ObjectIdentifier] = DEFAULT_MICA_POLICIES,
 ) -> tuple[Path, Path]:
     """Use a CSR and MICA key pair to generate a SEP2 Certificate"""
@@ -272,6 +269,12 @@ def generate_mica(
     with open(csr_path, "rb") as fh:
         csr_data = fh.read()
     csr = x509.load_pem_x509_csr(csr_data)
+
+    # Get the issuer details from the CSR subject
+    org_name = csr.subject.get_attributes_for_oid(NameOID.ORGANIZATION_NAME)[0].value
+    country_name = csr.subject.get_attributes_for_oid(NameOID.COUNTRY_NAME)[0].value
+    common_name = csr.subject.get_attributes_for_oid(NameOID.COMMON_NAME)[0].value
+    serial_no = csr.subject.get_attributes_for_oid(NameOID.SERIAL_NUMBER)[0].value
 
     if not cert_file:
         output_dir = csr_path.parent
@@ -301,7 +304,7 @@ def generate_mica(
             x509.NameAttribute(NameOID.COUNTRY_NAME, country_name),
             x509.NameAttribute(NameOID.ORGANIZATION_NAME, org_name),
             x509.NameAttribute(NameOID.COMMON_NAME, common_name),
-            x509.NameAttribute(NameOID.SERIAL_NUMBER, "1"),
+            x509.NameAttribute(NameOID.SERIAL_NUMBER, serial_no),
         ]
     )
 

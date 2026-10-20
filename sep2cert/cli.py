@@ -55,34 +55,6 @@ def info(filepath: Path, verbose: bool = False) -> None:
 
 
 @app.command()
-def create_key(
-    key_file: Path | None = None,
-    hostname: str = "",
-    verbose: bool = False,
-) -> None:
-    """Generate a new private key and a corresponding CSR."""
-    log_level = "DEBUG" if verbose else "INFO"
-    logging.basicConfig(level=log_level, format=LOG_FORMAT)
-
-    hostnames = None if not hostname else [hostname]
-    _key, _csr = generate_key(key_file, generate_csr=True, hostnames=hostnames)
-
-
-@app.command()
-def create_csr(
-    key_file: Path,
-    hostname: str = "",
-    verbose: bool = False,
-) -> None:
-    """Generate a Certificate Signing Request (CSR) from an existing key file."""
-    log_level = "DEBUG" if verbose else "INFO"
-    logging.basicConfig(level=log_level, format=LOG_FORMAT)
-
-    hostnames = None if not hostname else [hostname]
-    _key, _csr = generate_csr_file(key_file, hostnames=hostnames)
-
-
-@app.command()
 def create_serca(
     org_name: str = "Smart Energy",
     verbose: bool = False,
@@ -99,21 +71,54 @@ def create_serca(
 
 
 @app.command()
-def create_mica(
-    ca_cert: Path,
-    ca_key: Path,
-    org_name: str = "Example Org",
+def create_key(
+    key_file: Path,
+    hostname: str = "",
+    csr: bool = False,
     verbose: bool = False,
-    output_dir: Path = DEFAULT_DIR,
+) -> None:
+    """Generate a new private key and a corresponding CSR."""
+    log_level = "DEBUG" if verbose else "INFO"
+    logging.basicConfig(level=log_level, format=LOG_FORMAT)
+
+    hostnames = None if not hostname else [hostname]
+    _key, _csr = generate_key(key_file, generate_csr=csr, hostnames=hostnames)
+
+
+@app.command()
+def create_csr(
+    key_file: Path,
+    hostname: str = "",
+    org_name: str | None = None,
+    country_name: str | None = None,
+    common_name: str | None = None,
+    serial_no: str | None = None,
+    verbose: bool = False,
+) -> None:
+    """Generate a Certificate Signing Request (CSR) from an existing key file."""
+    log_level = "DEBUG" if verbose else "INFO"
+    logging.basicConfig(level=log_level, format=LOG_FORMAT)
+
+    hostnames = None if not hostname else [hostname]
+    _csr = generate_csr_file(
+        key_file,
+        hostnames=hostnames,
+        org_name=org_name,
+        country_name=country_name,
+        common_name=common_name,
+        serial_no=serial_no,
+    )
+
+
+@app.command()
+def create_mica(
+    csr_path: Path, ca_cert: Path, ca_key: Path, verbose: bool = False
 ) -> None:
     """Generate a MICA certificate from a CA certificate and key."""
     log_level = "DEBUG" if verbose else "INFO"
     logging.basicConfig(level=log_level, format=LOG_FORMAT)
 
-    output_dir.mkdir(exist_ok=True)
-    key_file = output_dir / "mica.key"
-    _key, csr = generate_key(key_file, generate_csr=True)
-    generate_mica(csr, ca_cert, ca_key, org_name=org_name)
+    generate_mica(csr_path, ca_cert, ca_key)
 
 
 @app.command()

@@ -35,3 +35,48 @@ def test_cli_create_serca(runner):
 
         exp_file = Path(tmpdir) / "serca.pem"
         assert exp_file.exists()
+
+
+def test_cli_create_full_chain(runner):
+    with tempfile.TemporaryDirectory() as tmpdir:
+        # Create a SERCA certificate
+        result = runner.invoke(app, ["create-serca", "--output-dir", tmpdir])
+        assert result.exit_code == 0
+
+        serca_key = Path(tmpdir) / "serca.key"
+        serca_cert = Path(tmpdir) / "serca.pem"
+        assert serca_key.exists()
+        assert serca_cert.exists()
+
+        # Create a MICA key and CSR
+        mica_key = Path(tmpdir) / "mica.key"
+        result = runner.invoke(app, ["create-key", str(mica_key)])
+        assert result.exit_code == 0
+        assert mica_key.exists()
+
+        mica_csr = Path(tmpdir) / "mica.csr"
+        result = runner.invoke(
+            app,
+            [
+                "create-csr",
+                str(mica_key),
+                "--org-name",
+                "Example Org",
+                "--country-name",
+                "AU",
+                "--common-name",
+                "IEEE 2030.5 MICA",
+                "--serial-no",
+                "1",
+            ],
+        )
+        assert result.exit_code == 0
+        assert mica_csr.exists()
+
+        # Create a MICA certificate signed by the SERCA
+        result = runner.invoke(
+            app, ["create-mica", str(mica_csr), str(serca_cert), str(serca_key)]
+        )
+        mica_cert = Path(tmpdir) / "mica.pem"
+        assert result.exit_code == 0
+        assert mica_cert.exists()
