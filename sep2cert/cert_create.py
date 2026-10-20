@@ -53,7 +53,16 @@ def random_id() -> str:
     return str(uuid.uuid4()).replace("-", "")[:10].upper()
 
 
-def generate_csr_file(key_file: Path, hostnames: list[str] | None = None) -> Path:
+def generate_csr_file(
+    key_file: Path,
+    hostnames: list[str] | None = None,
+    org_name: str | None = None,
+    country_name: str | None = None,
+    common_name: str | None = None,
+    serial_no: str | None = None,
+) -> Path:
+    """Create a Certificate Signing Request (CSR) file from a private key."""
+
     # Load the private key
     with open(key_file, "rb") as fh:
         pem_data = fh.read()
@@ -73,9 +82,29 @@ def generate_csr_file(key_file: Path, hostnames: list[str] | None = None) -> Pat
             san = x509.DNSName(name)
             san_list.append(san)
 
+    # Define the Subject Name Attributes
+    subject_attributes = []
+    if country_name:
+        attr = x509.NameAttribute(NameOID.COUNTRY_NAME, country_name)
+        subject_attributes.append(attr)
+    if org_name:
+        attr = x509.NameAttribute(NameOID.ORGANIZATION_NAME, org_name)
+        subject_attributes.append(attr)
+    if common_name:
+        attr = x509.NameAttribute(NameOID.COMMON_NAME, common_name)
+        subject_attributes.append(attr)
+    if serial_no:
+        attr = x509.NameAttribute(NameOID.SERIAL_NUMBER, serial_no)
+        subject_attributes.append(attr)
+
+    if not subject_attributes:
+        # Empty subject name is allowed for SEP2 Certificates
+        subject_name = x509.Name("")
+    else:
+        subject_name = x509.Name(subject_attributes)
+
     cb = x509.CertificateSigningRequestBuilder()
-    subject_name = ""
-    cb = cb.subject_name(x509.Name(subject_name))
+    cb = cb.subject_name(subject_name)
     if hostnames:
         cb = cb.add_extension(
             x509.SubjectAlternativeName(san_list),
