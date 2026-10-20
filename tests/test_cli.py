@@ -20,9 +20,11 @@ def test_cli_version(runner):
 
 def test_cli_get_lfdi(runner):
     file_name = "example-certs/example-ABC-cert.pem"
-    result = runner.invoke(app, ["cert-lfdi", file_name])
+    result = runner.invoke(app, ["info", file_name])
     expected_lfdi = "CA6A-EDC0-3021-4C70-B798-89EF-B8E5-D8CD-244D-CDAA"
     assert f"The LFDI is: {expected_lfdi}" in result.stdout
+    expected_sfdi = "543-360-849-954"
+    assert f"The SFDI is: {expected_sfdi}" in result.stdout
     assert result.exit_code == 0
 
 

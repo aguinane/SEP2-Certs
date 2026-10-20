@@ -4,6 +4,7 @@ from pathlib import Path
 import typer
 
 from .cert_create import (
+    generate_csr_file,
     generate_device_certificate,
     generate_key,
     generate_mica,
@@ -35,7 +36,8 @@ def callback(
 
 
 @app.command()
-def lfdi(filepath: Path, verbose: bool = False) -> None:
+def info(filepath: Path, verbose: bool = False) -> None:
+    """Output the LFDI and SFDI for a certificate"""
     log_level = "DEBUG" if verbose else "INFO"
     logging.basicConfig(level=log_level, format=LOG_FORMAT)
 
@@ -46,7 +48,7 @@ def lfdi(filepath: Path, verbose: bool = False) -> None:
     lfdi = get_certificate_lfdi(filepath)
     typer.echo(f"The LFDI is: {lfdi}")
 
-    sfdi = get_sfdi(filepath)
+    sfdi = get_sfdi(lfdi)
     typer.echo(f"The SFDI is: {sfdi}")
 
     validate_certificate(filepath)
@@ -58,6 +60,7 @@ def create_key(
     hostname: str = "",
     verbose: bool = False,
 ) -> None:
+    """Generate a new private key and a corresponding CSR."""
     log_level = "DEBUG" if verbose else "INFO"
     logging.basicConfig(level=log_level, format=LOG_FORMAT)
 
@@ -66,11 +69,26 @@ def create_key(
 
 
 @app.command()
+def create_csr(
+    key_file: Path,
+    hostname: str = "",
+    verbose: bool = False,
+) -> None:
+    """Generate a Certificate Signing Request (CSR) from an existing key file."""
+    log_level = "DEBUG" if verbose else "INFO"
+    logging.basicConfig(level=log_level, format=LOG_FORMAT)
+
+    hostnames = None if not hostname else [hostname]
+    _key, _csr = generate_csr_file(key_file, hostnames=hostnames)
+
+
+@app.command()
 def create_serca(
     org_name: str = "Smart Energy",
     verbose: bool = False,
     output_dir: Path = DEFAULT_DIR,
 ) -> None:
+    """Generate a new root SERCA certificate and key."""
     log_level = "DEBUG" if verbose else "INFO"
     logging.basicConfig(level=log_level, format=LOG_FORMAT)
 
@@ -88,6 +106,7 @@ def create_mica(
     verbose: bool = False,
     output_dir: Path = DEFAULT_DIR,
 ) -> None:
+    """Generate a MICA certificate from a CA certificate and key."""
     log_level = "DEBUG" if verbose else "INFO"
     logging.basicConfig(level=log_level, format=LOG_FORMAT)
 
@@ -106,6 +125,7 @@ def create_cert(
     serno: str = "1",
     verbose: bool = False,
 ) -> None:
+    """Generate a device certificate from a CSR and CA certificate and key."""
     log_level = "DEBUG" if verbose else "INFO"
     logging.basicConfig(level=log_level, format=LOG_FORMAT)
 
@@ -114,3 +134,5 @@ def create_cert(
     )
     lfdi = get_certificate_lfdi(cert_fp)
     typer.echo(f"The LFDI is: {lfdi}")
+    sfdi = get_sfdi(lfdi)
+    typer.echo(f"The SFDI is: {sfdi}")
